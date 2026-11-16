@@ -25,6 +25,8 @@ person, model, or personal context.
   variant.
 - Preserve user changes and do not perform Git operations without an explicit
   request.
+- Do not remove inherited auth or domain behavior until the replacement
+  demonstrator and its tests are verified.
 
 ## Layer responsibilities
 
@@ -46,6 +48,13 @@ person, model, or personal context.
   workflow.
 - Rules enforceable by the database should also be protected with a PostgreSQL
   constraint or index.
+- The host/composition root owns authentication-scheme and identity-provider
+  configuration; endpoints/use cases own policies and resource authorization.
+- Derive caller, owner, and tenant identity from a validated principal and
+  trusted membership data, never from a caller-controlled role, `ownerId`, or
+  `tenantId`.
+- Keep tokens, passwords, client secrets, and unnecessary personal data out of
+  logs and responses.
 
 ## Vertical-slice order
 
@@ -70,10 +79,16 @@ to make folders look symmetrical.
 - Public API or authorization changes require an integration test.
 - Constraints, transactions, migrations, or concurrency require a PostgreSQL
   test.
+- Auth tests should cover applicable anonymous `401`, authenticated-but-denied
+  `403`, own-versus-other resource access, and attempts to override ownership
+  or tenant identity.
+- Validate issuer, audience, signature, and expiry for JWT/OIDC demonstrators;
+  test CSRF for cookie-authenticated mutations and refresh rotation, reuse, and
+  concurrency only for the custom-JWT demonstrator.
 - Testcontainers-based PostgreSQL tests require a working Docker environment.
 - Never claim PostgreSQL validation passed based only on unit tests.
-- After implementation, explain the data flow, failure paths, risks, validation
-  results, and remaining gaps.
+- After implementation, explain the data flow, failure paths, risks, exact
+  validation commands/results, and remaining gaps.
 - When learning support is part of the request, finish with a short `TEACH-BACK`
   that checks whether the flow and failure paths are understood.
 

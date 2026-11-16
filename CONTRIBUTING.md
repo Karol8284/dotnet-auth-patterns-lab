@@ -1,9 +1,8 @@
 # Contributing
 
-Thank you for improving the .NET React Starter. This repository is both an
-executable reference architecture and a reusable source-template project, so
-changes should preserve behavior, boundaries, documentation, and the proof
-that the repository still works for new consumers.
+Thank you for improving Auth Patterns Lab. It is an educational .NET/React
+project; changes should preserve working examples, make trust boundaries
+understandable, and include evidence appropriate to the scenario.
 
 ## Before you start
 
@@ -13,7 +12,7 @@ Read the relevant parts of:
 2. [Getting started](doc/GETTING_STARTED.md);
 3. [Project architecture](doc/ARCHITECTURE.md);
 4. [Adding features](doc/ADDING_FEATURES.md);
-5. [CI/CD](doc/CI_CD.md);
+5. [Auth Patterns Lab roadmap](doc/AUTH_PATTERNS_LAB_ROADMAP.md);
 6. [Security policy](SECURITY.md).
 
 For backend work, also read
@@ -31,10 +30,10 @@ the repository-wide
 3. Search for the nearest existing pattern and reuse it before introducing a
    new abstraction or package.
 4. Make one coherent vertical slice at a time. Keep unrelated worktree changes
-   intact and do not rewrite history belonging to another task.
+   intact and do not rewrite history belonging to another task. Do not remove
+   inherited behavior until a replacement has been verified.
 5. Update directly related documentation, configuration examples, migrations,
-   generated consumer evidence, and release notes when the change affects
-   them.
+   and test evidence when the change affects them.
 6. Run the narrowest decisive checks first, then the affected build or broader
    suite when the change crosses a contract, persistence, routing, migration,
    concurrency, or module boundary.
@@ -144,8 +143,8 @@ Use this checklist before requesting review:
 - [ ] No credentials, tokens, personal data, or generated build output were
       committed.
 - [ ] CI-relevant commands pass locally or the limitation is explained.
-- [ ] V8 template/generator changes include the relevant proof and
-      regenerate-and-review impact.
+- [ ] Authentication and resource-authorization tests cover the relevant
+      denial and failure paths.
 
 ## Commit and documentation conventions
 
@@ -157,15 +156,6 @@ Documentation changes should prefer durable, task-oriented pages over adding
 large operational sections to the README. Update both README entry points when
 the documentation map or public project behavior changes. Keep examples
 sanitized and make environment-specific assumptions explicit.
-
-## Generated V8 content
-
-Treat `templates/v8-consumer/` and generated output as a release surface, not
-as an unrelated copy of the main application. Read
-[templates/v8-consumer/Common/README.md](templates/v8-consumer/Common/README.md)
-before changing template files. Follow the
-[V8 release gate](doc/V8_RELEASE_GATE.md), run the generators/evidence scripts,
-and review the generated diff before claiming the template is updated.
 
 ## Security and conduct
 

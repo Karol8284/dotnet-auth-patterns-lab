@@ -1,5 +1,4 @@
-﻿using Domain.Enums;
-using System;
+using Domain.Enums;
 
 namespace Domain.Entities.JWT
 {
@@ -24,6 +23,9 @@ namespace Domain.Entities.JWT
         public string TokenHash { get; set; } = string.Empty;
 
         public string ConcurrencyStamp { get; set; } = string.Empty;
+
+        public string? DeviceName { get; private set; }
+        public string? UserAgent { get; private set; }
 
         /// <summary>
         /// IP address from which the token was created (for audit trail).
@@ -59,5 +61,45 @@ namespace Domain.Entities.JWT
         /// Null for standalone tokens or legacy tokens without family tracking.
         /// </summary>
         public Guid? FamilyId { get; set; }
+
+        public bool IsActive(DateTime now)
+        {
+            return !RevokedAt.HasValue && ExpiresAt > now;
+        }
+
+        public void Revoke(DateTime now, RevocationReason reason, string? replacedByTokenHash = null)
+        {
+            if (RevokedAt.HasValue)
+            {
+                throw new InvalidOperationException("Token is already revoked.");
+            }
+            RevokedAt = now;
+            RevocationReason = reason;
+            ReplacedByTokenHash = replacedByTokenHash;
+            ConcurrencyStamp = GenerateConcurrencyStamp();
+        }
+
+        public void MarkAsRotated(DateTime usedAt, string usedByIp, string replacedByTokenHash, Guid familyId)
+        {
+            if (!IsActive(usedAt))
+            {
+                throw new InvalidOperationException("Token is not active and cannot be rotated.");
+            }
+
+            ArgumentException.ThrowIfNullOrEmpty(replacedByTokenHash, nameof(replacedByTokenHash));
+
+            if (familyId == Guid.Empty)
+            {
+                throw new ArgumentException("Family ID cannot be empty.", nameof(familyId));
+            }
+
+            Revoke(usedAt, Domain.Enums.RevocationReason.TokenRotated, replacedByTokenHash);
+            LastUsedAt = usedAt;
+            LastUsedByIp = usedByIp;
+            FamilyId = familyId;
+        }
+
+        private static string GenerateConcurrencyStamp()
+            => Guid.NewGuid().ToString("N");
     }
 }

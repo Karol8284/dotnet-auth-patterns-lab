@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Domain.Entities.JWT;
 using Domain.Enums;
 using Domain.Interfaces;
@@ -120,7 +120,7 @@ namespace Infrastructure.Services
                 return null;
             }
 
-            if (storedToken.ExpiresAt <= now)
+            if (!storedToken.IsActive(now))
             {
                 _logger.LogWarning("Refresh token is expired for user {UserId}", storedToken.UserId);
                 return null;
@@ -140,13 +140,12 @@ namespace Infrastructure.Services
             var familyId = storedToken.FamilyId ?? Guid.NewGuid();
             var tokenPair = CreateTokenPair(user, now, familyId);
 
-            storedToken.LastUsedAt = now;
-            storedToken.LastUsedByIp = clientIp;
-            storedToken.FamilyId = familyId;
-            storedToken.RevokedAt = now;
-            storedToken.RevocationReason = RevocationReason.TokenRotated;
-            storedToken.ReplacedByTokenHash = tokenPair.RefreshToken.TokenHash;
-            storedToken.ConcurrencyStamp = GenerateConcurrencyStamp();
+            storedToken.MarkAsRotated(
+                usedAt: now,
+                usedByIp: clientIp,
+                replacedByTokenHash: tokenPair.RefreshToken.TokenHash,
+                familyId: familyId);
+
             _dbContext.RefreshTokens.Add(tokenPair.RefreshToken);
 
             try
@@ -207,11 +206,10 @@ namespace Infrastructure.Services
                 return;
             }
 
-            storedToken.RevokedAt = DateTime.UtcNow;
-            storedToken.RevocationReason = RevocationReason.UserLogout;
-            storedToken.LastUsedAt = DateTime.UtcNow;
+            var now = DateTime.UtcNow;
+            storedToken.Revoke(now, RevocationReason.UserLogout);
+            storedToken.LastUsedAt = now;
             storedToken.LastUsedByIp = GetClientIp();
-            storedToken.ConcurrencyStamp = GenerateConcurrencyStamp();
 
             try
             {
@@ -240,9 +238,7 @@ namespace Infrastructure.Services
 
             foreach (var token in activeTokens)
             {
-                token.RevokedAt = now;
-                token.RevocationReason = reason;
-                token.ConcurrencyStamp = GenerateConcurrencyStamp();
+                token.Revoke(now, reason);
             }
 
             if (activeTokens.Count > 0)
@@ -310,9 +306,7 @@ namespace Infrastructure.Services
 
             foreach (var token in activeTokens)
             {
-                token.RevokedAt = revokedAt;
-                token.RevocationReason = reason;
-                token.ConcurrencyStamp = GenerateConcurrencyStamp();
+                token.Revoke(revokedAt, reason);
             }
 
             if (activeTokens.Count > 0)

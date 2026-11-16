@@ -1,8 +1,9 @@
-# Project Copilot Instructions
+# Auth Patterns Lab — Copilot Instructions
 
-These repository-level instructions define the portable engineering baseline for
-this project and for consumers generated from the V8 template. They must remain
-free of personal data and user-specific context.
+These portable engineering rules apply to this authentication and authorization
+learning lab. Keep them free of personal profiles and user-specific preferences.
+The project scope and learning stages are documented in
+[`doc/AUTH_PATTERNS_LAB_ROADMAP.md`](../doc/AUTH_PATTERNS_LAB_ROADMAP.md).
 
 ## Engineering priorities
 
@@ -20,14 +21,18 @@ free of personal data and user-specific context.
 ## Working method
 
 - Work on one coherent vertical slice or one hardening topic at a time.
+- Inspect the current implementation, configuration, tests, and nearest
+  existing pattern before proposing or applying a change.
 - Define the actor, expected result, invariants, rule owner, data owner,
   meaningful failure paths, transaction boundary, and cheapest decisive test.
 - Compare only a few realistic implementation options and state the recommended
   smallest variant.
-- Separate work required now, reasonable follow-up work, and out-of-scope ideas.
+- Separate facts, assumptions, unknowns, constraints, and decisions.
 - Implement in small, reversible checkpoints.
-- After a change, explain layer responsibilities, risks, validation results, and
-  remaining gaps.
+- Preserve unrelated user changes. Do not delete inherited functionality until
+  its replacement slice and tests have been verified.
+- After a change, report layer responsibilities, risks, exact validation
+  evidence, and remaining gaps.
 
 ## Conversation modes
 
@@ -39,9 +44,11 @@ free of personal data and user-specific context.
 - `TEACH-BACK`: check understanding of the flow and failure paths without
   replacing the explanation with generated code.
 
-When the requested outcome is ambiguous, clarify the mode and scope before
-editing. Keep technical decisions and repository rules independent from
-personal preferences.
+For explicitly educational authentication or authorization exercises, first
+ask the learner to draw the flow, explain the trust boundary, or attempt the
+core policy/test. Review and teach from that attempt before supplying the
+central implementation. Do not make this a prerequisite for requested
+boilerplate, scaffolding, UI, or unrelated work.
 
 ## Architecture
 
@@ -60,6 +67,28 @@ personal preferences.
 - Rules enforceable by the database should also be protected by PostgreSQL
   constraints or indexes when applicable.
 
+## Authentication and authorization
+
+- Each incompatible trust model must use a separate host/composition root,
+  configuration, and relevant tests. Do not combine them behind a global
+  `AuthMode` switch.
+- Configure authentication schemes and identity-provider integration at the
+  host boundary. Enforce endpoint policies and access to specific resources in
+  the owning API/use case.
+- Trust identity only from a successfully validated principal. Never accept a
+  caller's role, owner ID, or tenant ID from UI-controlled request data.
+- Keep passwords, tokens, client secrets, and unnecessary personal data out of
+  logs and the React demo console.
+- Gate seeded accounts and demo data to Development, Demo, or Test; document a
+  safe reset path.
+- Do not implement cryptography, OAuth/OIDC flows, or MFA protocols from
+  scratch. Do not use implicit flow or Resource Owner Password Credentials for
+  new demonstrations.
+- Distinguish ID tokens from access tokens. Do not assume every access token is
+  a JWT.
+- Document and consistently test whether an inaccessible resource returns
+  `403` or `404`. CORS does not replace authorization or CSRF protection.
+
 ## Validation
 
 - Run the narrowest decisive test first.
@@ -73,6 +102,11 @@ personal preferences.
 - Use frontend or browser tests when the user-visible workflow changes.
 - Do not claim PostgreSQL or Docker validation passed when the environment could
   not run it.
+- Label unit, API integration, PostgreSQL integration, browser E2E, manual
+  identity-provider sign-in, and unrun checks accurately. A test identity
+  handler does not prove a real OIDC sign-in.
+- Report only checks actually run, including commands and outcomes. Do not
+  infer current results from old checked-in test reports.
 
 ## Documentation and safety
 
@@ -85,4 +119,5 @@ personal preferences.
   tag operations without a direct request.
 
 Backend-specific rules are in
-`.github/instructions/backend.instructions.md`.
+`.github/instructions/backend.instructions.md`. Auth lab scope and planned
+scenarios are in `doc/AUTH_PATTERNS_LAB_ROADMAP.md`.
