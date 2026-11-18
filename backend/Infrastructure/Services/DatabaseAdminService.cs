@@ -5,7 +5,6 @@ using Domain.Enums;
 using Domain.ValueObjects;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Ocsp;
 using Shared.Responses;
 using System;
 using System.Collections.Generic;
